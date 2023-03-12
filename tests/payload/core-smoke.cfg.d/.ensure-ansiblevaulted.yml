@@ -1,0 +1,7 @@
+---
+encrypted-suffix: vault
+vault-password-file: ./.vault-password
+files:
+  - "*.secret"
+  - "*.another-secret"
+  - repo.new-secret
