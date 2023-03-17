@@ -18,7 +18,12 @@ if [ -n "${OVERRIDE_STAGE_COMMAND}" ]; then
   STAGE_COMMAND="${OVERRIDE_STAGE_COMMAND}"
 fi
 
-${CORE_SCRIPT} | while read -r OUTPUT; do
+if ! core_script_output="$(${CORE_SCRIPT})"; then
+  echo "❌ core script failed: ${core_script_output}"
+  exit 1
+fi
+
+while read -r OUTPUT; do
   if ! echo "${OUTPUT}" | grep "${PORCELAIN_PATTERN}" >/dev/null 2>&1; then
     echo "$OUTPUT"
     continue
@@ -29,4 +34,4 @@ ${CORE_SCRIPT} | while read -r OUTPUT; do
     echo "❌ staging failed"
     exit 1
   fi
-done
+done <<<"${core_script_output}"

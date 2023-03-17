@@ -10,4 +10,6 @@ repos:
     rev: v0.0.17
     hooks:
       - id: shellcheck
+        args: ["-x"]
       - id: shfmt
+        args: ["-w", "-i", "2"]

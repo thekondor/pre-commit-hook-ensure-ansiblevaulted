@@ -1,35 +1,17 @@
 #!/usr/bin/env bash
+# -*- coding: utf-8 -*-
+
+#
+# (c) 2023, Andrew Sichevoi https://thekondor.net
+#
 
 SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
 SUT_DIR="$(dirname "${SELF_DIR}")"
 
-if ! test_repo=$(mktemp -d); then
-  echo "mktemp: failed"
-  exit 1
-fi
+# shellcheck source=tests/common_test-repo.sh.inc
+source "${SELF_DIR}/common_test-repo.sh.inc"
 
-cleanup() {
-  deactivate >/dev/null 2>&1
-  if [ -n "${test_repo}" ]; then
-    rm -rf "${test_repo}"
-  fi
-
-  if ! popd; then
-    echo "returning back fro the test repo dir failed"
-    exit 1
-  fi
-}
-trap cleanup EXIT
-
-if [ -z "${test_repo}" ]; then
-  echo "invalid repo root"
-  exit 1
-fi
-
-if ! pushd "${test_repo}"; then
-  echo "switching to test repo '${test_repo}' failed"
-  exit 1
-fi
+create_test_repo
 
 if ! git init .; then
   echo "git repo initialization failed"
