@@ -2,6 +2,8 @@
 
 Unconditional⋆ [`pre-commit`](https://pre-commit.com) hook to encrypt certain files using `ansible-vault`
 
+**tl;dr** git hook to encrypt `terraform`'s `tfstate` files on commit using `ansible-vault`. Could be used for other file types as well and as a standalone script.
+
 ## Usage
 
 0. Dependencies
@@ -14,7 +16,7 @@ Unconditional⋆ [`pre-commit`](https://pre-commit.com) hook to encrypt certain 
 
 ``` yaml
 - repo: https://github.com/thekondor/pre-commit-hook-ensure-ansiblevaulted
-  rev: v0.1.0 # or other specific tag
+  rev: v0.1.2 # or other specific tag
   hooks:
     - id: ensure-ansiblevaulted
 ```
@@ -55,7 +57,7 @@ On of the common patterns to deal with use-cases like this one, is to leverage e
 - Files to "protect" (specified in `.ensure-ansiblevaulted.yml`):
   - have to be added manually to `.gitignore` to avoid any accidental stage (no corresponding warning/check from the hook yet);
   - are limited with `find` glob-patterns;
-- Each file is encrypted to a separate file-based artefact (though they all could be stored to a single `yml`-based vault).
+- Each file is encrypted to a separate file-based artefact (though e.g. they all could be stored to a single `yml`-based vault).
 
 ## Disclaimer
 
