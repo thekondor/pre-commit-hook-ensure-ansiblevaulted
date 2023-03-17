@@ -5,6 +5,11 @@
 # (c) 2023, Andrew Sichevoi https://thekondor.net
 #
 
+readonly DEBUG=${DEBUG:-unset}
+if [ "${DEBUG}" != unset ]; then
+  set -x
+fi
+
 SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
 PORCELAIN_PATTERN="ansible-vaulted\[to-add\]"
 

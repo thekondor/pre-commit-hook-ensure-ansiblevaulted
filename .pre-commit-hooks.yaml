@@ -2,3 +2,5 @@
   name: Ensure files are encrypted with ansible vault
   language: script
   entry: ./hook.sh
+  exclude: ".*"
+  always_run: true
