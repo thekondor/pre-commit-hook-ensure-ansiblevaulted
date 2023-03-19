@@ -1,7 +1,10 @@
 ---
 encrypted-suffix: vault
+track-git-ignored: .with-error
 vault-password-file: ./.vault-password
 files:
   - "*.secret"
   - "*.another-secret"
   - repo.new-secret
+  ### The file is not existent in vanilla repo but to be created during the tests
+  - "*.not-ignored-secret"

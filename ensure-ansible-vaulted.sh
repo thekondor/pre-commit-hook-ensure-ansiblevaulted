@@ -49,18 +49,33 @@ if [ -n "${OPT_VAULT_PASSWORD_FILE}" ]; then
   ANSIBLE_VAULT_PASSWORD_ARG="--vault-password-file ${OPT_VAULT_PASSWORD_FILE}"
 fi
 
+OPT_ENSURE_IGNORED=$(yq '.track-git-ignored // ".with-error"' "${SELF_CFG}")
+if [ ! ".with-error" = "${OPT_ENSURE_IGNORED}" ] && [ ! ".with-warning" = "${OPT_ENSURE_IGNORED}" ]; then
+  echo " - ${_ERR}: unknown value for track-ignored=${OPT_ENSURE_IGNORED}"
+  exit 1
+fi
+
 export EDITOR="${SELF_EDITOR}"
 
-yq '.files[]' "${SELF_CFG}" | while read -r PLAIN_ENTRY; do
-  find "${REPO_DIR}" -type f -name "${PLAIN_ENTRY}" | while read -r PLAIN_FULL_PATH; do
+while read -r PLAIN_ENTRY; do
+  while read -r PLAIN_FULL_PATH; do
     ENCRYPTED_FULL_PATH="${PLAIN_FULL_PATH}.${OPT_ENCRYPTED_SUFFIX}"
 
     echo "- ${_INF} ensure ansible vaulted: ${PLAIN_FULL_PATH} -> ${ENCRYPTED_FULL_PATH}"
 
     if [ ! -f "${PLAIN_FULL_PATH}" ]; then
-      echo "  + ${_ERR}: ${PLAIN_FULL_PATH} not found, error stop"
+      echo "  + ${_ERR}: ${PLAIN_FULL_PATH} not found/accessible"
       exit 1
     fi
+
+    if ! git check-ignore -q "${PLAIN_FULL_PATH}"; then
+      echo "  + ${PLAIN_FULL_PATH} is not declared in .gitignore"
+      if [ ".with-error" = "${OPT_ENSURE_IGNORED}" ]; then
+        echo "  + ${_ERR}: this is critical"
+        exit 1
+      fi
+    fi
+
     if [ ! -f "${ENCRYPTED_FULL_PATH}" ]; then
       echo "  + ${ENCRYPTED_FULL_PATH} not found, creating for you..."
       # shellcheck disable=SC2086
@@ -87,5 +102,5 @@ yq '.files[]' "${SELF_CFG}" | while read -r PLAIN_ENTRY; do
     fi
 
     echo "ansible-vaulted[to-add]:${ENCRYPTED_FULL_PATH}"
-  done
-done
+  done < <(find "${REPO_DIR}" -type f -name "${PLAIN_ENTRY}")
+done < <(yq '.files[]' "${SELF_CFG}")

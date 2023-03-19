@@ -36,7 +36,7 @@ cp -r "${SELF_DIR}"/payload/core-smoke.test-repo.d/. .
 cp -r "${SELF_DIR}"/payload/core-smoke.cfg.d/. .
 ls -la .
 
-### This will also add `.vault-password` which in normal case doesn't belong there
+### This will also add `.vault-password` which in normal case doesn't belong to a git repo
 git add .
 git commit -m "initial commit"
 
@@ -51,6 +51,7 @@ git diff --name-only --cached | tee "${git_staged_output}" | while read -r stage
   fi
 done
 
+echo "--- ❇️ CASE: normal/errorless flow"
 echo "🔸diff{"
 echo \
   "dirA1/dirA2/repo.another-secret.vault
@@ -65,4 +66,38 @@ if [ ! 0 -eq ${DIFF_RC} ]; then
   exit 1
 else
   echo "✅ PASSED"
+fi
+
+### NOTE: depends on the previous repo status
+echo "--- ❇️ CASE: track ignored with warning"
+if ! yq e -i '.track-git-ignored = ".with-warning"' .ensure-ansiblevaulted.yml; then
+  echo "failed: update config"
+  exit 1
+fi
+
+touch "foo.not-ignored-secret"
+
+if ! "${SUT_DIR}"/hook.sh | grep -q "foo.not-ignored-secret is not declared in .gitignore"; then
+  echo "❌ FAILED"
+  exit 1
+else
+  echo "✅ PASSED"
+fi
+
+### NOTE: depends on the previous repo status
+echo "--- ❇️ CASE: track ignored with error"
+if ! yq e -i '.track-git-ignored = ".with-error"' .ensure-ansiblevaulted.yml; then
+  echo "failed: update config"
+  exit 1
+fi
+
+output="$("${SUT_DIR}"/hook.sh)"
+hook_rc=$?
+if [ 0 -ne $hook_rc ] &&
+  echo "${output}" | grep -q "foo.not-ignored-secret is not declared in .gitignore" &&
+  echo "${output}" | grep -q "this is critical"; then
+  echo "✅ PASSED"
+else
+  echo "❌ FAILED"
+  echo "output: ${output}"
 fi
